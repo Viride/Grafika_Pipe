@@ -114,6 +114,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Shader_Loader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Shader_Loader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Fragment_Shader.txt" />
+    <Text Include="Vertex_Shader.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
