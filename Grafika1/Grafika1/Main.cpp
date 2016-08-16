@@ -10,7 +10,7 @@
 #include <vector>
 #include <string.h>
 #include <vector>
-#include<fstream>
+#include <fstream>
 #include "colors.h"
 #include "materials.h"
 #include "shaderprogram.h"
@@ -132,7 +132,7 @@ void drawScene(GLFWwindow* window, float angle1, float angle2) {
 		glm::vec3(observerx, observery, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f));
 
-	glm::mat4 P = glm::perspective(45 * PI / 180, width/height, 1.0f, 150.0f); //Wylicz macierz rzutowania
+	glm::mat4 P = glm::perspective(60 * PI / 180, width/height, 1.0f, 150.0f); //Wylicz macierz rzutowania
 
 																	  //Za³aduj macierz rzutowania do OpenGL
 	glMatrixMode(GL_PROJECTION);
@@ -183,6 +183,8 @@ int main(void)
 	for (int i = 0; i < 81; i++) {
 		std::cout << tab[i].x_left << " " << tab[i].x_right << " " << tab[i].y_down << " " << tab[i].y_up << std::endl;
 	}
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // We want OpenGL 3.3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	GLFWwindow* window; //WskaŸnik na obiekt reprezentuj¹cy okno
 
 	glfwSetErrorCallback(error_callback);//Zarejestruj procedurê obs³ugi b³êdów
@@ -228,53 +230,3 @@ int main(void)
 	glfwTerminate(); //Zwolnij zasoby zajête przez GLFW
 	exit(EXIT_SUCCESS);
 }
-/*
-using namespace Core;
-
-GLuint program;
-
-void renderScene(void)
-{
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(1.0, 0.0, 0.0, 1.0);//clear red
-
-									 //use the created program
-	glUseProgram(program);
-
-	//draw 3 vertices as triangles
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-
-	glutSwapBuffers();
-}
-
-void Init()
-{
-
-	glEnable(GL_DEPTH_TEST);
-
-	//load and compile shaders
-	Core::Shader_Loader shaderLoader;
-	program = shaderLoader.CreateProgram("Vertex_Shader.glsl",
-		"Fragment_Shader.glsl");
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-}
-
-int main(int argc, char **argv)
-{
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-	glutInitWindowPosition(100, 100);
-	glutInitWindowSize(800, 600);
-	glutCreateWindow("Drawing my first triangle");
-	glewInit();
-
-	Init();
-
-	// register callbacks
-	glutDisplayFunc(renderScene);
-	glutMainLoop();
-	glDeleteProgram(program);
-	return 0;
-
-}
-*/
