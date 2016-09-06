@@ -29,6 +29,17 @@ float height = 768;
 float width = 1366;
 int numer_pola=40;
 
+//Uchwyty na shadery
+ShaderProgram *shaderProgram; //WskaŸnik na obiekt reprezentuj¹cy program cieniuj¹cy.
+
+							  //Uchwyty na VAO i bufory wierzcho³ków
+GLuint vao;
+GLuint bufVertices; //Uchwyt na bufor VBO przechowuj¹cy tablicê wspó³rzêdnych wierzcho³ków
+GLuint bufColors;  //Uchwyt na bufor VBO przechowuj¹cy tablicê kolorów
+GLuint bufNormals; //Uchwyt na bufor VBO przechowuj¹cy tablickê wektorów normalnych
+GLuint bufTexCoords; //Uchwyt na bufor VBO przechowuj¹cy tablickê wektorów normalnych
+GLuint tex0;
+
 struct Pola {
 	int number;				//numer elementu 0-80
 	float x_left, x_right;	// wspó³rzêdne do kwadratu
@@ -64,6 +75,16 @@ void inicjalizacja(Pola tab[]) {
 
 }
 
+
+GLuint makeBuffer(std::vector<glm::vec4> data) {
+	GLuint handle;
+
+	glGenBuffers(1, &handle);//Wygeneruj uchwyt na Vertex Buffer Object (VBO), który bêdzie zawiera³ tablicê danych
+	glBindBuffer(GL_ARRAY_BUFFER, handle);  //Uaktywnij wygenerowany uchwyt VBO 
+											//glBufferData(GL_ARRAY_BUFFER, vertexCount*vertexSize, data, GL_STATIC_DRAW);//Wgraj tablicê do VBO
+	glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(glm::vec4), &data[0], GL_STATIC_DRAW);
+	return handle;
+}
 
 void key_callback(GLFWwindow* window, int key,
 	int scancode, int action, int mods) {
@@ -177,6 +198,108 @@ void drawScene(GLFWwindow* window, float angle1, float angle2) {
 
 }
 
+void freeOpenGLProgram() {
+	delete shaderProgram; //Usuniêcie programu cieniuj¹cego
+
+	glDeleteVertexArrays(1, &vao); //Usuniêcie vao
+	glDeleteBuffers(1, &bufVertices); //Usuniêcie VBO z wierzcho³kami
+	glDeleteBuffers(1, &bufColors); //Usuniêcie VBO z kolorami
+	glDeleteBuffers(1, &bufNormals); //Usuniêcie VBO z wektorami normalnymi
+	glDeleteBuffers(1, &bufTexCoords); //Usuniêcie VBO ze wspó³rzêdnymi teksturowania
+}
+
+bool loadOBJ(const char * path, std::vector<glm::vec4> & out_vertices, std::vector<glm::vec2> & out_uvs, std::vector<glm::vec4> & out_normals) {
+	printf("Loading OBJ file %s...\n", path);
+
+	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
+	std::vector<glm::vec4> temp_vertices;
+	std::vector<glm::vec2> temp_uvs;
+	std::vector<glm::vec4> temp_normals;
+
+
+	FILE * file = fopen(path, "r");
+	if (file == NULL) {
+		printf("Impossible to open the file ! Are you in the right path ?\n");
+		return false;
+	}
+
+	while (1) {
+
+		char lineHeader[128];
+		// read the first word of the line
+		int res = fscanf(file, "%s", lineHeader);
+		if (res == EOF)
+			break; // EOF = End Of File. Quit the loop.
+
+				   // else : parse lineHeader
+
+		if (strcmp(lineHeader, "v") == 0) {
+			glm::vec4 vertex;
+			fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
+			vertex.w = 1.0f;
+			temp_vertices.push_back(vertex);
+		}
+		else if (strcmp(lineHeader, "vt") == 0) {
+			glm::vec2 uv;
+			fscanf(file, "%f %f\n", &uv.x, &uv.y);
+			uv.y = -uv.y; // Invert V coordinate since we will only use DDS texture, which are inverted. Remove if you want to use TGA or BMP loaders.
+			temp_uvs.push_back(uv);
+		}
+		else if (strcmp(lineHeader, "vn") == 0) {
+			glm::vec4 normal;
+			fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+			normal.w = 0.0f;
+			temp_normals.push_back(normal);
+		}
+		else if (strcmp(lineHeader, "f") == 0) {
+			std::string vertex1, vertex2, vertex3;
+			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
+			int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2]);
+			if (matches != 9) {
+				printf("File can't be read by our simple parser :-( Try exporting with other options\n");
+				//	return false;
+			}
+			vertexIndices.push_back(vertexIndex[0]);
+			vertexIndices.push_back(vertexIndex[1]);
+			vertexIndices.push_back(vertexIndex[2]);
+			uvIndices.push_back(uvIndex[0]);
+			uvIndices.push_back(uvIndex[1]);
+			uvIndices.push_back(uvIndex[2]);
+			normalIndices.push_back(normalIndex[0]);
+			normalIndices.push_back(normalIndex[1]);
+			normalIndices.push_back(normalIndex[2]);
+		}
+		else {
+			// Probably a comment, eat up the rest of the line
+			char stupidBuffer[1000];
+			fgets(stupidBuffer, 1000, file);
+		}
+
+	}
+
+	// For each vertex of each triangle
+	for (unsigned int i = 0; i<vertexIndices.size(); i++) {
+
+		// Get the indices of its attributes
+		unsigned int vertexIndex = vertexIndices[i];
+		unsigned int uvIndex = uvIndices[i];
+		unsigned int normalIndex = normalIndices[i];
+
+		// Get the attributes thanks to the index
+		glm::vec4 vertex = temp_vertices[vertexIndex - 1];
+		glm::vec2 uv = temp_uvs[uvIndex - 1];
+		glm::vec4 normal = temp_normals[normalIndex - 1];
+
+		// Put the attributes in buffers
+		out_vertices.push_back(vertex);
+		out_uvs.push_back(uv);
+		out_normals.push_back(normal);
+
+	}
+
+	return true;
+}
+
 int main(void)
 {
 	inicjalizacja(tab);
@@ -225,6 +348,8 @@ int main(void)
 		drawScene(window, angle1, angle2); //Wykonaj procedurê rysuj¹c¹
 		glfwPollEvents(); //Wykonaj procedury callback w zaleznoœci od zdarzeñ jakie zasz³y.
 	}
+	
+	freeOpenGLProgram();
 
 	glfwDestroyWindow(window); //Usuñ kontekst OpenGL i okno
 	glfwTerminate(); //Zwolnij zasoby zajête przez GLFW
