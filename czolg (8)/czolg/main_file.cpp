@@ -12,6 +12,7 @@
 #include <time.h>
 #include <math.h>
 
+
 int numer_pola = 24;
 
 
@@ -114,7 +115,7 @@ void ok() //poprawne ustawienie rur
 		int pom = rura[i].pozycja;
 		while (pom != 0)
 		{
-			// tutaj te obroty
+			model[i] = glm::rotate(model[i], -90.0f, glm::vec3(0, 1, 0));
 			pom++;
 			if (pom > 4) pom = 0;
 			rura[i].pozycja = pom;
@@ -139,7 +140,7 @@ void los()
 			obrot = rand() % 2;
 			while (obrot != 0)
 			{
-				// TUTAJ OBROT O 90 RURY
+				model[i] = glm::rotate(model[i], -90.0f, glm::vec3(0, 1, 0));
 				rura[i].pozycja++;
 				if (rura[i].pozycja == 2) rura[i].pozycja = 0;
 				obrot--;
@@ -150,7 +151,7 @@ void los()
 			obrot = rand() % 4;
 			while (obrot != 0)
 			{
-				// TUTAJ OBROT O 90 RURY
+				model[i] = glm::rotate(model[i], -90.0f, glm::vec3(0, 1, 0));
 				rura[i].pozycja++;
 				if (rura[i].pozycja == 4) rura[i].pozycja = 0;
 				obrot--;
@@ -208,9 +209,10 @@ void drawObject() {
 			rura[k].wsp_z = z;
 			modele = glm::mat4(glm::vec4(1, 0, 0, 0), glm::vec4(0, 1, 0, 0), glm::vec4(0, 0, 1, 0), glm::vec4(x, 1, z, 1));*/
 			if (rura[k].obrot == 1) {
-				model[k] = glm::rotate(model[k], 90.0f, glm::vec3(0, 1, 0));
+				model[k] = glm::rotate(model[k], -90.0f, glm::vec3(0, 1, 0));
 				rura[k].obrot = 0;
-				printf("jestem tu\n");
+				rura[k].pozycja += 1;
+				if(rura[k].pozycja>3) rura[k].pozycja=0;
 			}
 			
 			//glUniformMatrix4fv(shaderProgram->getUniformLocation("M"), 1, false, glm::value_ptr(glm::scale(glm::mat4(glm::vec4(1, 0, 0, 0), glm::vec4(0, 1, 0, 0), glm::vec4(0, 0, 1, 0), glm::vec4(x, 1, z, 1)), glm::vec3(1))));
@@ -222,11 +224,9 @@ void drawObject() {
 			glDrawArrays(GL_TRIANGLES, 0, vertexCount[rura[k].model]);
 
 			k++;
-			x += 5.75;
+			
 		}
 
-		z -= 5.75;
-		x = -17.25;
 	}
 
 	//los();
@@ -388,9 +388,14 @@ void displayFrame() {
 	}
 
 	
-	matV=glm::lookAt(glm::vec3(xcam,ycam,zcam),glm::vec3(vectorlook.x,vectorlook.y,vectorlook.z),glm::vec3(0.0f,1.0f,0.0f));
+	//matV=glm::lookAt(glm::vec3(xcam,ycam,zcam),glm::vec3(vectorlook.x,vectorlook.y,vectorlook.z),glm::vec3(0.0f,1.0f,0.0f));
 	//matV=glm::lookAt(glm::vec3(xcam,5.0f,zcam),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(0.0f,1.0f,0.0f)); 
 	//matV=glm::translate(matV, glm::vec3(0,0,move));
+	matV = glm::lookAt( //Wylicz macierz widoku
+		glm::vec3(1.0f, 60.0f, 0.0f),
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f));
+	
 	
 	wektor1=matM*glm::vec4(1,0,0,0);
 	wektor2=matM*glm::vec4(0,1,0,0);
@@ -818,11 +823,11 @@ void inicjalizacja()
 			rura[k].wsp_z = z;
 			model[k] = glm::mat4(glm::vec4(1, 0, 0, 0), glm::vec4(0, 1, 0, 0), glm::vec4(0, 0, 1, 0), glm::vec4(x, 1, z, 1));
 			k++;
-			x += 5.75;
+			z -= 5.75;
 		}
 
-		z -= 5.75;
-		x = -17.25;
+		x += 5.75;
+		z =+ 17.25;
 	}
 
 }
@@ -833,7 +838,8 @@ int main(int argc, char** argv) {
 	//inicjalizacja(tab);
 
 	inicjalizacja();
-	
+//	los();
+
 	loadOBJ("plane.obj", vertys[0], uvs[0], nrmals[0]);
 	vertexCount[0]=vertys[0].size();
 	loadOBJ("1_out_pipe.obj", vertys[1], uvs[1], nrmals[1]);
