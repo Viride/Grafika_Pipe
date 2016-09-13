@@ -22,8 +22,8 @@
 
 float speedx = 0; // [radiany/s]
 float speedy = 0;
-float observerx = 0.0;
-float observery = 0.0;
+float target_x = 0.0;
+float target_y = 0.0;
 float observerz = -40.0;
 float height = 768;
 float width = 1366;
@@ -150,7 +150,7 @@ void drawScene(GLFWwindow* window, float angle1, float angle2) {
 
 	glm::mat4 V = glm::lookAt( //Wylicz macierz widoku
 		glm::vec3(0.0f, 0.0f, observerz),
-		glm::vec3(observerx, observery, 0.0f),
+		glm::vec3(target_x, observery, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f));
 
 	glm::mat4 P = glm::perspective(60 * PI / 180, width/height, 1.0f, 150.0f); //Wylicz macierz rzutowania
