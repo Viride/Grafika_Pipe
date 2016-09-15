@@ -29,5 +29,5 @@ void main(void) {
 	vec4 Ms=vec4(1,1,1,0); //kolor materia³u dla œwiat³a odbitego
 
 	vec4 texColor=texture(textureMap0,iTexCoord);
-	pixelColor=texColor*0.15f+texColor*vec4(nl,nl,nl,1);//+vec4(RV,RV,RV,1)+vec4(RV2,RV2,RV2,1);
+	pixelColor=texColor*0.15f+texColor*vec4(nl,nl,nl,1); //+vec4(RV,RV,RV,1)+vec4(RV2,RV2,RV2,1);
 }

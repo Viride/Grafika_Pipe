@@ -765,11 +765,13 @@ void keyFunc() {
 
 
 	if (keyStates['w'] == true) {
-		cam1-=5;
+		if(cam1>-40)cam1-=5;
+		else cam1 = -40;
 
 	}
 	if (keyStates['s'] == true) {
-		cam1 += 5;;
+		if (cam1<30)cam1 += 5;
+		else cam1 = 30;
 	}
 	//NIEPOTRZEBNE
 	if (keyStates['a'] == true) {
