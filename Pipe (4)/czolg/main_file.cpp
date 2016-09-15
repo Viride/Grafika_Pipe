@@ -200,6 +200,7 @@ void drawObject() {
 	glUniformMatrix4fv(shaderProgram->getUniformLocation("P"), 1, false, glm::value_ptr(matP));
 	glUniformMatrix4fv(shaderProgram->getUniformLocation("V"), 1, false, glm::value_ptr(matV));
 	glUniformMatrix4fv(shaderProgram->getUniformLocation("M"), 1, false, glm::value_ptr(matM));
+	glUniform3fv(shaderProgram->getUniformLocation("cameraPosition"), 1, glm::value_ptr(glm::vec3(0.0f, 60.0f + cam1, 1.0f)));
 	glUniform1i(shaderProgram->getUniformLocation("textureMap0"), 0);
 
 

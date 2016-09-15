@@ -1,0 +1,132 @@
+#version 330
+
+//out vec4 pixelColor; //
+
+uniform mat4 M; //JEST M zamiast model
+uniform vec3 cameraPosition; //TO TEZ
+uniform sampler2D textureMap0;
+
+
+in vec3 materialSpecularColor; //TO TO SAMO //__10__
+
+in vec2 fragTexCoord; //TO PRZYSZLO
+in vec3 fragNormal;   //TO PRZYSZLO
+in vec3 fragVert;     //TO PRZYSZLO
+float materialShininess=100;
+
+out vec4 finalColor;	//		Zmienna wyjsciowa fragment shadera. Zapisuje sie do niej ostateczny (prawie) kolor piksela
+
+vec4 position1 = vec4(0,15,0,0);
+vec4 position2 = vec4(0,0,15,0);		//__20__
+vec3 intensities1 = vec3(1,1,1);
+vec3 intensities2 = vec3(1,1,1);		
+float ambientCoefficient1 = 0.06f;
+float ambientCoefficient2 = 0.06f;
+
+
+//vec3 ApplyLight(Light light, vec3 surfaceColor, vec3 normal, vec3 surfacePos, vec3 surfaceToCamera) {
+//    vec3 surfaceToLight;
+//    float attenuation = 1.0;
+//    if(light.position.w == 0.0) {		//__30__
+//        //directional light
+//        surfaceToLight = normalize(light.position.xyz);		
+//        attenuation = 1.0; //no attenuation for directional lights
+//    } else {
+//        //point light
+//        surfaceToLight = normalize(light.position.xyz - surfacePos);
+//        float distanceToLight = length(light.position.xyz - surfacePos);
+//        attenuation = 1.0 / (1.0 + light.attenuation * pow(distanceToLight, 2));
+//        }
+//    }									//__40__
+//
+//    //ambient
+//    vec3 ambient = light.ambientCoefficient * surfaceColor.rgb * light.intensities;
+//
+//    //diffuse
+//    float diffuseCoefficient = max(0.0, dot(normal, surfaceToLight));
+//    vec3 diffuse = diffuseCoefficient * surfaceColor.rgb * light.intensities;
+//    
+//    //specular
+//    float specularCoefficient = 0.0;	//__50__
+//    if(diffuseCoefficient > 0.0)
+//        specularCoefficient = pow(max(0.0, dot(surfaceToCamera, reflect(-surfaceToLight, normal))), materialShininess);
+//    vec3 specular = specularCoefficient * materialSpecularColor * light.intensities;
+//
+//    //linear color (color before gamma correction)
+//    return ambient + attenuation*(diffuse + specular);
+//}
+
+
+void main(void) {						//__60__
+	
+	float distanceToLight;
+	float attenuation;
+	vec3 ambient;
+	float diffuseCoefficient;
+	vec3 diffuse;
+	float specularCoefficient;
+	vec3 specular;
+	vec3 normal = normalize(transpose(inverse(mat3(M))) * fragNormal);	//NOWE
+    vec3 surfacePos = vec3(M * vec4(fragVert, 1));		//__70__
+    vec4 surfaceColor = texture(textureMap0, fragTexCoord);
+    vec3 surfaceToCamera = normalize(cameraPosition - surfacePos);
+
+	//combine color from all the lights
+	vec3 linearColor = vec3(0);
+
+	vec3 surfaceToLight;
+    attenuation = 1.0;
+    if(position1.w == 0.0) {
+        surfaceToLight = normalize(position1.xyz);		//__80__
+        attenuation = 1.0; //no attenuation for directional lights
+    } else {
+        surfaceToLight = normalize(position1.xyz - surfacePos);
+        distanceToLight = length(position1.xyz - surfacePos);
+        attenuation = 1.0 / (1.0 + attenuation1 * pow(distanceToLight, 2));
+        }
+    }
+    //ambient
+    vec3 ambient = ambientCoefficient1 * surfaceColor.rgb * intensities1;
+    //diffuse											//__90__
+    vec3 diffuseCoefficient = max(0.0, dot(normal, surfaceToLight));
+    vec3 diffuse = diffuseCoefficient * surfaceColor.rgb * intensities1;
+    //specular
+    float specularCoefficient = 0.0;
+    if(diffuseCoefficient > 0.0){
+        specularCoefficient = pow(max(0.0, dot(surfaceToCamera, reflect(-surfaceToLight, normal))), materialShininess);}
+    vec3 specular = specularCoefficient * materialSpecularColor * intensities1;
+
+	//-----------------------------------------------------------------------
+    float attenuation = 1.0;
+    if(position2.w == 0.0) {
+        surfaceToLight = normalize(position2.xyz);		//__40__
+        attenuation = 1.0; //no attenuation for directional lights
+    } else {
+        surfaceToLight = normalize(position2.xyz - surfacePos);
+        distanceToLight = length(position2.xyz - surfacePos);
+        attenuation = 1.0 / (1.0 + attenuation2 * pow(distanceToLight, 2));
+        }
+    }
+    //ambient
+    ambient = ambientCoefficient2 * surfaceColor.rgb * intensities2;
+    //diffuse
+    diffuseCoefficient = max(0.0, dot(normal, surfaceToLight));
+    diffuse = diffuseCoefficient * surfaceColor.rgb * intensities2;
+    //specular
+    specularCoefficient = 0.0;
+    if(diffuseCoefficient > 0.0)
+        specularCoefficient = pow(max(0.0, dot(surfaceToCamera, reflect(-surfaceToLight, normal))), materialShininess);
+    specular = specularCoefficient * materialSpecularColor * intensities2;
+
+    //linear color (color before gamma correction)
+    linearColor += ambient + attenuation*(diffuse + specular);
+
+    for(int i = 0; i < numLights; ++i){
+        linearColor += ApplyLight(allLights[i], surfaceColor.rgb, normal, surfacePos, surfaceToCamera);
+    }
+
+	//final color (after gamma correction)
+    vec3 gamma = vec3(1.0/2.2);
+    finalColor = vec4(pow(linearColor, gamma), surfaceColor.a);
+
+}

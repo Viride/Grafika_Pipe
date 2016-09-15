@@ -1,0 +1,31 @@
+#version 330
+
+//Zmienne jednorodne
+uniform mat4 P;
+uniform mat4 V; //uniform mat4 camera;
+uniform mat4 M; //uniform mat4 model;
+
+
+//Atrybuty
+in vec4 vertex; //in vec3 vert;      wspolrzedne wierzcholka w przestrzeni modelu
+in vec4 color;  //             kolor wierzcholka (na razie ignorowany)
+in vec4 normal; //in vec3 vertNormal;             wektor normalny w wierzcholku (na razie ignorowany)
+in vec2 texCoord; //in vec2 vertTexCoord;
+
+out vec2 iTexCoord;
+
+//vec4 lp=vec4(0,15,0,1); //Po³o¿enie Ÿród³a œwiat³a w przestrzeni œwiata
+//vec4 lp1=vec4(0,5,15,1);
+
+out vec4 fragVert;
+out vec2 fragTexCoord;
+out vec4 fragNormal;
+out vec3 materialSpecularColor;
+
+void main(void) {
+	fragTexCoord = texCoord;
+    fragNormal = normal;
+    fragVert = vertex;
+	gl_Position=V*M*vertex;
+	materialSpecularColor=vec3(color);
+}
