@@ -1,0 +1,47 @@
+#version 330
+
+out vec4 pixelColor; //Zmienna wyjsciowa fragment shadera. Zapisuje sie do niej ostateczny (prawie) kolor piksela
+
+in vec4 iV;
+in vec4 iN;
+in vec4 iL;
+in vec4 iL2;
+in vec4 iC;
+in vec2 iTexCoord;
+
+float shininess=100;
+
+uniform sampler2D textureMap0;
+
+void main(void) {
+	vec4 eyeN=normalize(iN);
+	vec4 eyeV=normalize(iV);
+	vec4 eyeL=normalize(iL);
+	vec4 eyeL2=normalize(iL2);
+	vec4 eyeR=reflect(-eyeL,eyeN);
+	vec4 eyeR2=reflect(-eyeL2,eyeN);
+
+	float nl=max(0,dot(eyeL,eyeN));
+	float nl2=max(0,dot(eyeL2,eyeN));
+	float rv=pow(max(0,dot(eyeR,eyeV)),shininess);
+	float rv2=pow(max(0,dot(eyeR2,eyeV)),shininess);
+	
+	//vec4 texColor=texture(textureMap0,iTexCoord);
+	vec4 La=vec4(0,0,0,1); //kolor œwiat³a otoczenia
+	vec4 Ma=vec4(0,0,0,1); //kolor materia³u dla œwiat³a otoczenia
+	vec4 Ld=vec4(1,1,1,1); //kolor œwiat³a rozpraszanego
+	vec4 Md=texture(textureMap0,iTexCoord);            //kolor materia³u dla œwiat³a rozpraszanego
+	//vec4 Ls=vec4(0.5,0.5,0.5,0); //kolor œwiat³a odbijanego ------>>>>> ODBIJA I BLYSZCZY
+	vec4 Ls=vec4(0,0,0,0); //kolor œwiat³a odbijanego		  ------>>>>> MATOWE
+	vec4 Ms=vec4(1,1,1,1); //kolor materia³u dla œwiat³a odbitego
+
+
+	//pixelColor=texColor*0.15f + texColor*vec4(nl,nl,nl,1); //+vec4(RV,RV,RV,1)+vec4(RV2,RV2,RV2,1);
+	vec4 pixelColor1=Ma*La+Md*Ld*nl+Ms*Ls*rv; //Oblicz model oswietlenia i zwroc jako kolor piksela
+	vec4 pixelColor2=Ma*La+Md*Ld*nl2+Ms*Ls*rv2;
+	pixelColor=pixelColor1+pixelColor2;
+	
+	
+
+	
+}
